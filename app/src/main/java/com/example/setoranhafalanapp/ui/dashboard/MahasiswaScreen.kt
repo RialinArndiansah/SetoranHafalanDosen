@@ -228,7 +228,7 @@ fun MahasiswaItem(mahasiswa: Mahasiswa) {
                     )
                     mahasiswa.info_setoran.tgl_terakhir_setor?.let {
                         Text(
-                            text = "Tanggal: $it",
+                            text = "Tanggal : $it",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
