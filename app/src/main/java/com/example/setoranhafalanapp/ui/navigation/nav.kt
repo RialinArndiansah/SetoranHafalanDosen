@@ -6,13 +6,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.setoranhafalan.ui.dashboard.DashboardScreen
+import com.example.setoranhafalanapp.ui.dashboard.DashboardScreen
 import com.example.setoranhafalan.ui.dashboard.KelolaSetoranScreen
 import com.example.setoranhafalan.ui.dashboard.LihatSetoranScreen
 import com.example.setoranhafalanapp.ui.login.LoginScreen
 import com.example.setoranhafalanapp.ui.login.LoginViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.setoranhafalan.ui.dashboard.MahasiswaScreen
+import com.example.setoranhafalanapp.ui.profile.ProfileScreen
 import java.io.File
 
 @Composable
@@ -47,6 +48,18 @@ fun SetupNavGraph(navController: NavHostController) {
         }
         composable("students") {
             MahasiswaScreen(navController)
+        }
+        composable("profile") {
+            ProfileScreen(
+                navController = navController,
+                onLogout = {
+                    loginViewModel.logout()
+                    clearProfilePhoto(context)
+                    navController.navigate("login") {
+                        popUpTo("profile") { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +25,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.setoranhafalan.data.model.Mahasiswa
 import com.example.setoranhafalanapp.ui.navigation.AppBottomNavigation
+import com.example.setoranhafalanapp.ui.navigation.tealPrimary
+import com.example.setoranhafalanapp.ui.navigation.tealDark
+import com.example.setoranhafalanapp.ui.navigation.tealLight
+import com.example.setoranhafalanapp.ui.navigation.tealPastel
+import com.example.setoranhafalanapp.ui.components.StatisticBox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +54,7 @@ fun MahasiswaScreen(navController: NavController) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF3B82F6),
+                    containerColor = tealPrimary,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -58,21 +62,13 @@ fun MahasiswaScreen(navController: NavController) {
         },
         bottomBar = {
             AppBottomNavigation(navController)
-        }
+        },
+        containerColor = Color(0xFFF5F7F9)
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF1094A4),
-                            Color(0xFFD083EE),
-                            Color(0xFF3787A8)
-                        )
-                    )
-                )
         ) {
             when (val state = dashboardState) {
                 is DashboardState.Idle -> {
@@ -84,7 +80,7 @@ fun MahasiswaScreen(navController: NavController) {
                         Text(
                             text = "Memulai pengambilan data...",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = Color.Gray
                         )
                     }
                 }
@@ -95,7 +91,7 @@ fun MahasiswaScreen(navController: NavController) {
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(48.dp),
-                            color = MaterialTheme.colorScheme.primary
+                            color = tealPrimary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("Memuat data mahasiswa...", style = MaterialTheme.typography.bodyLarge)
@@ -122,10 +118,15 @@ fun MahasiswaScreen(navController: NavController) {
                         Text(
                             text = "Gagal memuat data mahasiswa: ${state.message}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.error
+                            color = Color.Red
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { viewModel.fetchDosenInfo() }) {
+                        Button(
+                            onClick = { viewModel.fetchDosenInfo() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = tealPrimary
+                            )
+                        ) {
                             Text("Coba Lagi")
                         }
                     }
@@ -140,18 +141,18 @@ fun MahasiswaItem(mahasiswa: Mahasiswa) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(4.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = tealPrimary,
                     modifier = Modifier
                         .size(48.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(50))
+                        .background(tealPastel, shape = RoundedCornerShape(50))
                         .padding(8.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -159,12 +160,13 @@ fun MahasiswaItem(mahasiswa: Mahasiswa) {
                     Text(
                         text = mahasiswa.nama,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.DarkGray
                     )
                     Text(
                         text = "NIM: ${mahasiswa.nim}",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.Gray
                     )
                 }
             }
@@ -209,16 +211,16 @@ fun MahasiswaItem(mahasiswa: Mahasiswa) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                StatisticBox("Wajib", mahasiswa.info_setoran.total_wajib_setor.toString(), MaterialTheme.colorScheme.tertiaryContainer)
-                StatisticBox("Setor", mahasiswa.info_setoran.total_sudah_setor.toString(), MaterialTheme.colorScheme.primaryContainer)
-                StatisticBox("Belum", mahasiswa.info_setoran.total_belum_setor.toString(), MaterialTheme.colorScheme.secondaryContainer)
+                StatisticBox("Wajib", mahasiswa.info_setoran.total_wajib_setor.toString(), tealPastel)
+                StatisticBox("Setor", mahasiswa.info_setoran.total_sudah_setor.toString(), Color(0xFFE0F7FA))
+                StatisticBox("Belum", mahasiswa.info_setoran.total_belum_setor.toString(), Color(0xFFF5F5F5))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceVariant),
+                colors = CardDefaults.cardColors(containerColor = tealPastel.copy(alpha = 0.5f)),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
@@ -230,7 +232,7 @@ fun MahasiswaItem(mahasiswa: Mahasiswa) {
                         Text(
                             text = "Tanggal : $it",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.Gray
                         )
                     }
                 }
@@ -245,37 +247,14 @@ fun InfoColumn(title: String, value: String) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            color = Color.Gray
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1
+            maxLines = 1,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
         )
-    }
-}
-
-@Composable
-fun StatisticBox(title: String, value: String, color: Color) {
-    Box(
-        modifier = Modifier
-            .size(width = 100.dp, height = 64.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(color)
-            .padding(8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelSmall,
-                textAlign = TextAlign.Center
-            )
-        }
     }
 }

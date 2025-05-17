@@ -21,6 +21,13 @@ import androidx.navigation.NavController
 import com.example.setoranhafalanapp.data.model.SetoranMahasiswaResponse
 
 import com.example.setoranhafalanapp.ui.navigation.AppBottomNavigation
+import com.example.setoranhafalanapp.ui.navigation.tealPrimary
+import com.example.setoranhafalanapp.ui.navigation.tealDark
+import com.example.setoranhafalanapp.ui.navigation.tealLight
+import com.example.setoranhafalanapp.ui.navigation.tealPastel
+import com.example.setoranhafalanapp.ui.components.StatisticBox
+import com.example.setoranhafalanapp.ui.components.StyledSectionCard
+import com.example.setoranhafalanapp.ui.components.ProfileItem
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Brush
 
@@ -56,8 +63,8 @@ fun LihatSetoranScreen(navController: NavController) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF3B82F6),
-                    titleContentColor = Color(0xFFEAEDF3),
+                    containerColor = tealPrimary,
+                    titleContentColor = Color.White,
                     actionIconContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -71,15 +78,7 @@ fun LihatSetoranScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF1094A4),
-                                Color(0xFFD083EE),
-                                Color(0xFF3787A8)
-                            )
-                        )
-                    )
+                    .background(Color(0xFFF5F7F9))
             ) {
                 LazyColumn(
                     modifier = Modifier
@@ -91,9 +90,10 @@ fun LihatSetoranScreen(navController: NavController) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
+                                containerColor = Color.White
                             ),
-                            elevation = CardDefaults.cardElevation(2.dp)
+                            elevation = CardDefaults.cardElevation(2.dp),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -104,7 +104,7 @@ fun LihatSetoranScreen(navController: NavController) {
                                     text = "Pilih Mahasiswa",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color =  Color(0xFF0E0F11)
+                                    color = tealDark
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 ExposedDropdownMenuBox(
@@ -127,7 +127,7 @@ fun LihatSetoranScreen(navController: NavController) {
                                         colors = TextFieldDefaults.colors(
                                             focusedContainerColor = Color(0xFFF3F4F6),
                                             unfocusedContainerColor = Color(0xFFF3F4F6),
-                                            focusedIndicatorColor = Color(0xFF3B82F6),
+                                            focusedIndicatorColor = tealPrimary,
                                             unfocusedIndicatorColor = Color(0xFFD1D5DB)
                                         ),
                                         trailingIcon = {
@@ -165,7 +165,7 @@ fun LihatSetoranScreen(navController: NavController) {
                                         .height(48.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF3B82F6)
+                                        containerColor = tealPrimary
                                     )
                                 ) {
                                     Text("Lihat Setoran")
@@ -183,7 +183,7 @@ fun LihatSetoranScreen(navController: NavController) {
                                 ) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(48.dp),
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = tealPrimary
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
@@ -269,17 +269,17 @@ fun SetoranMahasiswaInfo(setoran: SetoranMahasiswaResponse) {
                 StatisticBox(
                     title = "Wajib Setor",
                     value = data.setoran.info_dasar.total_wajib_setor.toString(),
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+                    color = tealPastel
                 )
                 StatisticBox(
                     title = "Sudah Setor",
                     value = data.setoran.info_dasar.total_sudah_setor.toString(),
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    color = Color(0xFFE0F7FA)
                 )
                 StatisticBox(
                     title = "Belum Setor",
                     value = data.setoran.info_dasar.total_belum_setor.toString(),
-                    color = MaterialTheme.colorScheme.secondaryContainer
+                    color = Color(0xFFF5F5F5)
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -312,7 +312,7 @@ fun SetoranMahasiswaInfo(setoran: SetoranMahasiswaResponse) {
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = tealPastel.copy(alpha = 0.5f)
                     ),
                     elevation = CardDefaults.cardElevation(1.dp)
                 ) {
@@ -328,28 +328,6 @@ fun SetoranMahasiswaInfo(setoran: SetoranMahasiswaResponse) {
                     }
                 }
             }
-        }
-    }
-}
-@Composable
-fun StyledSectionCard(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-            content()
         }
     }
 }

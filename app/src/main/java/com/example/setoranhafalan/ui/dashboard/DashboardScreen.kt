@@ -1,4 +1,4 @@
-package com.example.setoranhafalanapp.ui.dashboard
+package com.example.setoranhafalan.ui.dashboard
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -16,6 +16,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,8 +38,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.setoranhafalan.data.model.DosenResponse
-import com.example.setoranhafalan.ui.dashboard.DashboardState
-import com.example.setoranhafalan.ui.dashboard.DashboardViewModel
 import com.example.setoranhafalanapp.R
 import com.example.setoranhafalanapp.ui.login.LoginViewModel
 import com.example.setoranhafalanapp.ui.navigation.AppBottomNavigation
@@ -492,4 +495,4 @@ private fun clearProfilePhoto(context: Context) {
     sharedPreferences.edit().remove("profile_photo_path").apply()
     val file = File(context.filesDir, "profile_photo.jpg")
     file.delete()
-}
+} 

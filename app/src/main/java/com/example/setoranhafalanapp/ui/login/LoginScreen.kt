@@ -118,7 +118,7 @@ fun LoginScreen(navController: NavController) {
                         .height(60.dp)
                         .padding(top = 16.dp),
                     shape = RoundedCornerShape(30.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF008B8B))
                 ) {
                     Text("login", color = Color.White)
                 }
