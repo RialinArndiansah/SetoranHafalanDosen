@@ -30,7 +30,6 @@ val tealPastel = Color(0xFFE0F7FA)     // Teal sangat muda
 fun AppBottomNavigation(navController: NavController) {
     val navItems = listOf(
         NavItem("Dashboard", R.drawable.home, "dashboard"),
-        NavItem("Lihat Setoran", R.drawable.task, "lihat_setoran"),
         NavItem("Kelola Setoran", R.drawable.note, "kelola_setoran"),
         NavItem("Mahasiswa", R.drawable.student, "students"),
         NavItem("Profil", R.drawable.user, "profile")

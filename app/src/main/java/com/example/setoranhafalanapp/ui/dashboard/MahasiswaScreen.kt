@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +31,7 @@ import com.example.setoranhafalanapp.ui.navigation.tealPrimary
 import com.example.setoranhafalanapp.ui.navigation.tealDark
 import com.example.setoranhafalanapp.ui.navigation.tealLight
 import com.example.setoranhafalanapp.ui.navigation.tealPastel
+import com.example.setoranhafalanapp.ui.components.CircularProgressBar
 import com.example.setoranhafalanapp.ui.components.StatisticBox
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,9 +107,13 @@ fun MahasiswaScreen(navController: NavController) {
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-
                         items(state.data.data.info_mahasiswa_pa.daftar_mahasiswa.size) { index ->
-                            MahasiswaItem(state.data.data.info_mahasiswa_pa.daftar_mahasiswa[index])
+                            MahasiswaItem(
+                                mahasiswa = state.data.data.info_mahasiswa_pa.daftar_mahasiswa[index],
+                                onDetailClick = { route ->
+                                    navController.navigate(route)
+                                }
+                            )
                         }
                     }
                 }
@@ -137,7 +144,10 @@ fun MahasiswaScreen(navController: NavController) {
 }
 
 @Composable
-fun MahasiswaItem(mahasiswa: Mahasiswa) {
+fun MahasiswaItem(
+    mahasiswa: Mahasiswa,
+    onDetailClick: (String) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -184,36 +194,47 @@ fun MahasiswaItem(mahasiswa: Mahasiswa) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Column {
-                Text(
-                    text = "Progres Setoran: ${mahasiswa.info_setoran.persentase_progres_setor}%",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                LinearProgressIndicator(
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Progres Setoran: ${mahasiswa.info_setoran.persentase_progres_setor}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                CircularProgressBar(
                     progress = mahasiswa.info_setoran.persentase_progres_setor / 100f,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(10.dp)
-                        .clip(RoundedCornerShape(5.dp)),
-                    color = when {
+                    size = 60.dp,
+                    strokeWidth = 8.dp,
+                    progressColor = when {
                         mahasiswa.info_setoran.persentase_progres_setor < 30 -> Color(0xFFE57373)
                         mahasiswa.info_setoran.persentase_progres_setor < 70 -> Color(0xFFFFB74D)
                         else -> Color(0xFF81C784)
-                    }
+                    },
+                    backgroundColor = Color(0xFFE0F2F1),
+                    textColor = Color.Black
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            Button(
+                onClick = {
+                    val route = "lihat_setoran/${mahasiswa.nim}"
+                    onDetailClick(route)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = tealPrimary
+                )
             ) {
-                StatisticBox("Wajib", mahasiswa.info_setoran.total_wajib_setor.toString(), tealPastel)
-                StatisticBox("Setor", mahasiswa.info_setoran.total_sudah_setor.toString(), Color(0xFFE0F7FA))
-                StatisticBox("Belum", mahasiswa.info_setoran.total_belum_setor.toString(), Color(0xFFF5F5F5))
+                Text("Detail Setoran", fontWeight = FontWeight.Medium)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

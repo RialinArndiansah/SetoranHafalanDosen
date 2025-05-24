@@ -11,6 +11,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -106,6 +107,37 @@ fun ProfileItem(label: String, value: String) {
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color = Color.DarkGray
+        )
+    }
+}
+
+@Composable
+fun CircularProgressBar(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    size: Dp = 60.dp,
+    strokeWidth: Dp = 8.dp,
+    backgroundColor: Color = Color(0xFFE0E0E0),
+    progressColor: Color = Color(0xFF008B8B), // tealPrimary
+    textColor: Color = Color.Black
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier.size(size)
+    ) {
+        CircularProgressIndicator(
+            progress = progress,
+            modifier = Modifier.size(size),
+            strokeWidth = strokeWidth,
+            color = progressColor,
+            trackColor = backgroundColor
+        )
+        Text(
+            text = "${(progress * 100).toInt()}%",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
         )
     }
 } 

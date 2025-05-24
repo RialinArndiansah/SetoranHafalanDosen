@@ -51,7 +51,7 @@ fun LoginScreen(navController: NavController) {
                 contentScale = ContentScale.FillWidth,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp)
+                    .height(200.dp)
                     .align(Alignment.TopCenter)
             )
 

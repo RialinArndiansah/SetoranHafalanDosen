@@ -40,8 +40,9 @@ fun SetupNavGraph(navController: NavHostController) {
                 }
             )
         }
-        composable("lihat_setoran") {
-            LihatSetoranScreen(navController)
+        composable("lihat_setoran/{nim}") { backStackEntry ->
+            val nim = backStackEntry.arguments?.getString("nim") ?: ""
+            LihatSetoranScreen(navController, nim)
         }
         composable("kelola_setoran") {
             KelolaSetoranScreen(navController)
