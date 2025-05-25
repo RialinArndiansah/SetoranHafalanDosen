@@ -1,0 +1,69 @@
+package dev.kelompok1.myapp
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import dev.kelompok1.myapp.ui.SetupNavGraph
+import dev.kelompok1.myapp.ui.theme.SetoranHafalanTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+
+class MainActivity : ComponentActivity() {
+    
+    // Use a StateFlow to track activity state
+    private val _activityState = MutableStateFlow(false)
+    val activityState: StateFlow<Boolean> = _activityState
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Optimize window insets handling
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        
+        // Start activity state tracking
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                _activityState.value = true
+            }
+        }
+        
+        setContent {
+            SetoranHafalanTheme {
+                // Optimized surface container that takes full size
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    // Use rememberNavController directly
+                    val navController = rememberNavController()
+                    
+                    // Call SetupNavGraph directly as a Composable
+                    SetupNavGraph(navController = navController)
+                }
+            }
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        _activityState.value = true
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        _activityState.value = false
+    }
+}

@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.setoranhafalanapp"
+    namespace = "dev.kelompok1.myapp"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.setoranhafalanapp"
+        applicationId = "dev.kelompok1.myapp"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -51,6 +51,9 @@ dependencies {
 
 // Coroutines untuk operasi asinkronus
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+// SwipeRefresh untuk pull-to-refresh
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.28.0")
 
 // Lifecycle dan ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
