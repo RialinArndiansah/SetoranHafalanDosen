@@ -223,7 +223,14 @@ fun MahasiswaItem(
             ) {
                 InfoColumn("Angkatan", mahasiswa.angkatan)
                 InfoColumn("Semester", mahasiswa.semester.toString())
-                InfoColumn("Status", if (mahasiswa.info_setoran.total_belum_setor == 0) "Lunas" else "Belum Lunas")
+                InfoColumn(
+                    "Status", 
+                    when {
+                        mahasiswa.info_setoran.total_sudah_setor == 0 -> "Let’s start\uD83E\uDD17"
+                        mahasiswa.info_setoran.persentase_progres_setor == 100f -> "Completed"
+                        else -> "On Progress"
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -57,6 +57,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -522,92 +525,99 @@ fun DashboardScreen(
                                         }
 
                                         // Show progress for each category by angkatan
-                                        categories.forEach { category ->
-                                            Card(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(vertical = 4.dp),
-                                                colors = CardDefaults.cardColors(
-                                                    containerColor = category.backgroundColor
-                                                )
-                                            ) {
-                                                Column(
-                                                    modifier = Modifier.padding(12.dp)
+                                        Column(modifier = Modifier.fillMaxWidth()) {
+                                            // Create a 2-column grid using Row and Column
+                                            val categoriesPairs = categories.chunked(2)
+                                            
+                                            categoriesPairs.forEach { rowCategories ->
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 4.dp),
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                                 ) {
-                                                    Text(
-                                                        text = category.name,
-                                                        style = MaterialTheme.typography.titleSmall,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        color = category.color
-                                                    )
-
-                                                    Spacer(modifier = Modifier.height(8.dp))
-
-                                                    Divider(
-                                                        modifier = Modifier.padding(vertical = 8.dp),
-                                                        color = category.color.copy(alpha = 0.2f)
-                                                    )
-
-                                                    // Define ayat requirements per category based on reference
-                                                    val ayatRequirements = mapOf(
-                                                        "KP" to 8,
-                                                        "SEMKP" to 8,
-                                                        "Daftar TA" to 8,
-                                                        "Sempro" to 12,
-                                                        "Sidang TA" to 3
-                                                    )
-                                                    val requiredAyat = ayatRequirements[category.name] ?: 0
-
-                                                    // Show progress for each angkatan with updated logic
-                                                    // IMPORTANT TODO: This is a placeholder. We need per-category submission data.
-                                                    // Currently using total_sudah_setor as a proxy, which is not accurate for specific categories.
-                                                    // Progress should only count students as complete for a category if they've met the required ayat for THAT category.
-                                                    // Reference SetoranMahasiswa for accurate per-category totals when data is available.
-                                                    // Ideally, use something like student.info_setoran.category_submissions[category.name] >= requiredAyat
-                                                    mahasiswaByAngkatan.entries.sortedByDescending { it.key }.forEach { (angkatan, students) ->
-                                                        val angkatanTotalStudents = students.size
-                                                        // Placeholder: Count students who have submitted at least the required ayat for this category
-                                                        // This will be inaccurate until we have per-category data
-                                                        val angkatanCompletedStudents = students.count { student ->
-                                                            student.info_setoran.total_sudah_setor >= requiredAyat
-                                                        }
-                                                        val angkatanProgress = if (angkatanTotalStudents > 0) {
-                                                            angkatanCompletedStudents.toFloat() / angkatanTotalStudents.toFloat()
-                                                        } else {
-                                                            0f
-                                                        }
-
-                                                        Column(
+                                                    rowCategories.forEach { category ->
+                                                        Card(
                                                             modifier = Modifier
-                                                                .fillMaxWidth()
-                                                                .padding(vertical = 4.dp)
+                                                                .weight(1f)
+                                                                .padding(vertical = 4.dp),
+                                                            colors = CardDefaults.cardColors(
+                                                                containerColor = category.backgroundColor
+                                                            )
                                                         ) {
-                                                            Row(
-                                                                modifier = Modifier.fillMaxWidth(),
-                                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                                verticalAlignment = Alignment.CenterVertically
+                                                            Column(
+                                                                modifier = Modifier.padding(8.dp)
                                                             ) {
                                                                 Text(
-                                                                    text = "Angkatan $angkatan",
-                                                                    style = MaterialTheme.typography.bodyMedium,
-                                                                    color = Color.DarkGray
-                                                                )
-                                                                Text(
-                                                                    text = "$angkatanCompletedStudents/$angkatanTotalStudents",
-                                                                    style = MaterialTheme.typography.bodyMedium,
+                                                                    text = category.name,
+                                                                    style = MaterialTheme.typography.titleSmall,
+                                                                    fontWeight = FontWeight.SemiBold,
                                                                     color = category.color
                                                                 )
-                                                            }
 
-                                                            LinearProgressIndicator(
-                                                                progress = angkatanProgress,
-                                                                modifier = Modifier
-                                                                    .fillMaxWidth()
-                                                                    .height(4.dp)
-                                                                    .clip(RoundedCornerShape(2.dp)),
-                                                                color = category.color,
-                                                                trackColor = category.color.copy(alpha = 0.2f)
-                                                            )
+                                                                Spacer(modifier = Modifier.height(4.dp))
+
+                                                                Divider(
+                                                                    modifier = Modifier.padding(vertical = 4.dp),
+                                                                    color = category.color.copy(alpha = 0.2f)
+                                                                )
+
+                                                                // Define ayat requirements per category based on reference
+                                                                val ayatRequirements = mapOf(
+                                                                    "KP" to 8,
+                                                                    "SEMKP" to 8,
+                                                                    "Daftar TA" to 8,
+                                                                    "Sempro" to 12,
+                                                                    "Sidang TA" to 3
+                                                                )
+                                                                val requiredAyat = ayatRequirements[category.name] ?: 0
+
+                                                                // Show progress for each angkatan with updated logic
+                                                                mahasiswaByAngkatan.entries.sortedByDescending { it.key }.forEach { (angkatan, students) ->
+                                                                    val angkatanTotalStudents = students.size
+                                                                    val angkatanCompletedStudents = students.count { student ->
+                                                                        student.info_setoran.total_sudah_setor >= requiredAyat
+                                                                    }
+                                                                    val angkatanProgress = if (angkatanTotalStudents > 0) {
+                                                                        angkatanCompletedStudents.toFloat() / angkatanTotalStudents.toFloat()
+                                                                    } else {
+                                                                        0f
+                                                                    }
+
+                                                                    Column(
+                                                                        modifier = Modifier
+                                                                            .fillMaxWidth()
+                                                                            .padding(vertical = 2.dp)
+                                                                    ) {
+                                                                        Row(
+                                                                            modifier = Modifier.fillMaxWidth(),
+                                                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                                                            verticalAlignment = Alignment.CenterVertically
+                                                                        ) {
+                                                                            Text(
+                                                                                text = "Angkatan $angkatan",
+                                                                                style = MaterialTheme.typography.bodySmall,
+                                                                                color = Color.DarkGray
+                                                                            )
+                                                                            Text(
+                                                                                text = "$angkatanCompletedStudents/$angkatanTotalStudents",
+                                                                                style = MaterialTheme.typography.bodySmall,
+                                                                                color = category.color
+                                                                            )
+                                                                        }
+
+                                                                        LinearProgressIndicator(
+                                                                            progress = angkatanProgress,
+                                                                            modifier = Modifier
+                                                                                .fillMaxWidth()
+                                                                                .height(3.dp)
+                                                                                .clip(RoundedCornerShape(1.5.dp)),
+                                                                            color = category.color,
+                                                                            trackColor = category.color.copy(alpha = 0.2f)
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
