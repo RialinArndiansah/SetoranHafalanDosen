@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -36,7 +37,10 @@ object Routes {
 }
 
 @Composable
-fun SetupNavGraph(navController: NavHostController) {
+fun SetupNavGraph(
+    navController: NavHostController, 
+    fragmentActivity: FragmentActivity
+) {
     val context = LocalContext.current
     val loginViewModel: LoginViewModel = viewModel(factory = LoginViewModel.getFactory(context))
     
@@ -74,7 +78,7 @@ fun SetupNavGraph(navController: NavHostController) {
                 )
             }
         ) {
-            LoginScreen(navController)
+            LoginScreen(navController, fragmentActivity)
         }
         
         composable(

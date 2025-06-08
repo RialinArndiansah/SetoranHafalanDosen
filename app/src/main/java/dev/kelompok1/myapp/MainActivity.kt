@@ -10,6 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     
     // Use a StateFlow to track activity state
     private val _activityState = MutableStateFlow(false)
@@ -50,8 +51,8 @@ class MainActivity : ComponentActivity() {
                     // Use rememberNavController directly
                     val navController = rememberNavController()
                     
-                    // Call SetupNavGraph directly as a Composable
-                    SetupNavGraph(navController = navController)
+                    // Call SetupNavGraph directly as a Composable and pass this activity
+                    SetupNavGraph(navController = navController, fragmentActivity = this)
                 }
             }
         }
