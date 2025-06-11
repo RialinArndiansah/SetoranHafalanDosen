@@ -1,8 +1,8 @@
 package dev.kelompok1.myapp.ui.profile
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -34,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import dev.kelompok1.myapp.ui.components.ProfileItem
 import dev.kelompok1.myapp.ui.components.StyledSectionCard
 import dev.kelompok1.myapp.ui.navigation.AppBottomNavigation
@@ -42,6 +43,7 @@ import dev.kelompok1.myapp.ui.navigation.tealDark
 import dev.kelompok1.myapp.ui.navigation.tealLight
 import dev.kelompok1.myapp.ui.navigation.tealPastel
 import dev.kelompok1.myapp.ui.dashboard.DashboardState
+import dev.kelompok1.myapp.ui.dashboard.DashboardViewModel
 import java.io.File
 import java.io.FileOutputStream
 import dev.kelompok1.myapp.R
@@ -54,21 +56,73 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.getFactory(context))
+    val dashboardViewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.getFactory(context))
     val dashboardState by viewModel.profileState.collectAsState()
     val userName by viewModel.userName.collectAsState()
-    
-    var profilePhotoUri by remember { mutableStateOf<String?>(loadProfilePhotoPath(context)) }
+    val profilePhotoUri by viewModel.profilePhotoUri.collectAsState()
     val defaultProfilePhoto = R.drawable.user
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            val file = saveImageToInternalStorage(context, it)
-            profilePhotoUri = file.absolutePath
-            saveProfilePhotoPath(context, file.absolutePath)
+
+    // Function to save image to local storage
+    fun saveImageToLocal(uri: Uri): Uri {
+        try {
+            // Create file in app's private storage directory
+            val timeStamp = System.currentTimeMillis()
+            val storageDir = context.filesDir
+            val fileName = "profile_photo_$timeStamp.jpg"
+            val imageFile = File(storageDir, fileName)
+            
+            // Copy the selected image to app's private storage
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val outputStream = FileOutputStream(imageFile)
+            inputStream?.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+            
+            // Save the file path to SharedPreferences
+            val sharedPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            with(sharedPrefs.edit()) {
+                putString("profile_photo", imageFile.absolutePath)
+                apply()
+            }
+            
+            // Return the URI for the saved file
+            return Uri.fromFile(imageFile)
+        } catch (e: Exception) {
+            Log.e("ProfileContent", "Failed to save image: ${e.message}", e)
+            // Return original URI if saving failed
+            return uri
         }
     }
 
+    // Image picker launcher
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            // Save selected image to local storage with error handling
+            val savedUri = saveImageToLocal(it)
+            // Update both ViewModels with the new URI
+            viewModel.updateProfilePhoto(savedUri)
+            dashboardViewModel.updateProfilePhoto(savedUri)
+        }
+    }
+
+    // Load saved profile photo on initial composition
     LaunchedEffect(Unit) {
         viewModel.fetchDosenInfo()
+        
+        if (profilePhotoUri == null) {
+            val sharedPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val savedPhotoPath = sharedPrefs.getString("profile_photo", null)
+            if (savedPhotoPath != null) {
+                val file = File(savedPhotoPath)
+                if (file.exists()) {
+                    val fileUri = Uri.fromFile(file)
+                    viewModel.updateProfilePhoto(fileUri)
+                    dashboardViewModel.updateProfilePhoto(fileUri)
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -147,18 +201,13 @@ fun ProfileScreen(
                                     .clickable { launcher.launch("image/*") }
                                     .background(Color.White, CircleShape)
                             ) {
-                                if (profilePhotoUri != null && File(profilePhotoUri).exists()) {
-                                    val bitmap = BitmapFactory.decodeFile(profilePhotoUri)
-                                    bitmap?.let {
-                                        Image(
-                                            bitmap = it.asImageBitmap(),
-                                            contentDescription = "Foto Profil",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    } ?: Image(
-                                        painter = painterResource(defaultProfilePhoto),
-                                        contentDescription = "Foto profil default",
+                                if (profilePhotoUri != null) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data(profilePhotoUri)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "Foto Profil",
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
                                     )
@@ -375,65 +424,19 @@ data class ProfileMenuItem(
     val onClick: () -> Unit
 )
 
-private fun saveImageToInternalStorage(context: Context, uri: Uri): File {
-    val inputStream = context.contentResolver.openInputStream(uri)
-    // Get user email
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val userEmail = sharedPreferences.getString("user_email", "") ?: ""
-    // Create a unique filename based on email
-    val fileName = if (userEmail.isNotEmpty()) {
-        "profile_photo_${userEmail.hashCode()}.jpg"
-    } else {
-        "profile_photo.jpg"
-    }
-    val file = File(context.filesDir, fileName)
-    FileOutputStream(file).use { outputStream ->
-        inputStream?.copyTo(outputStream)
-    }
-    inputStream?.close()
-    return file
-}
-
-private fun saveProfilePhotoPath(context: Context, path: String) {
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val userEmail = sharedPreferences.getString("user_email", "") ?: ""
-    // Save path with email as part of the key
-    val key = if (userEmail.isNotEmpty()) {
-        "profile_photo_path_$userEmail"
-    } else {
-        "profile_photo_path"
-    }
-    sharedPreferences.edit().putString(key, path).apply()
-}
-
-private fun loadProfilePhotoPath(context: Context): String? {
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val userEmail = sharedPreferences.getString("user_email", "") ?: ""
-    // Load path using email-specific key
-    val key = if (userEmail.isNotEmpty()) {
-        "profile_photo_path_$userEmail"
-    } else {
-        "profile_photo_path"
-    }
-    return sharedPreferences.getString(key, null)
-}
-
-private fun clearProfilePhoto(context: Context) {
-    // Only clear current user's photo
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val userEmail = sharedPreferences.getString("user_email", "") ?: ""
+// Helper function to load the profile photo from SharedPreferences
+private fun loadProfilePhoto(context: Context): Uri? {
+    val sharedPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val savedPhotoPath = sharedPrefs.getString("profile_photo", null)
     
-    if (userEmail.isNotEmpty()) {
-        val key = "profile_photo_path_$userEmail"
-        sharedPreferences.edit().remove(key).apply()
-        
-        val fileName = "profile_photo_${userEmail.hashCode()}.jpg"
-        val file = File(context.filesDir, fileName)
-        file.delete()
+    return if (savedPhotoPath != null) {
+        val file = File(savedPhotoPath)
+        if (file.exists()) {
+            Uri.fromFile(file)
+        } else {
+            null
+        }
     } else {
-        // Fallback to default behavior
-        sharedPreferences.edit().remove("profile_photo_path").apply()
-        val file = File(context.filesDir, "profile_photo.jpg")
-        file.delete()
+        null
     }
 } 

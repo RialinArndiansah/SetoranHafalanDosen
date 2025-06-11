@@ -1,6 +1,7 @@
 package dev.kelompok1.myapp.ui.profile
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -21,6 +22,9 @@ class ProfileViewModel(private val tokenManager: TokenManager) : ViewModel() {
     private val _userName = MutableStateFlow<String?>(null)
     val userName: StateFlow<String?> = _userName
     
+    private val _profilePhotoUri = MutableStateFlow<Uri?>(null)
+    val profilePhotoUri: StateFlow<Uri?> = _profilePhotoUri
+    
     private val TAG = "ProfileViewModel"
     
     init {
@@ -40,6 +44,10 @@ class ProfileViewModel(private val tokenManager: TokenManager) : ViewModel() {
                 Log.e(TAG, "Gagal menguraikan id_token: ${e.message}")
             }
         }
+    }
+    
+    fun updateProfilePhoto(uri: Uri?) {
+        _profilePhotoUri.value = uri
     }
     
     fun fetchDosenInfo() {
