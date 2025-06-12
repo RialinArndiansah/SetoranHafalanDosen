@@ -114,7 +114,7 @@ cd setoran-hafalan
 ```
 MIT License
 
-Copyright (c) 2024 kelompok1
+Copyright (c) 2025 kelompok1
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -135,8 +135,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+💡 Contributing | Kontribusi
+We welcome contributions! Please see our Contributing Guidelines for details.
+
+🐛 Bug Reports | Laporan Bug
+Found a bug? Please create an issue with as much detail as possible.
 
 <p align="center">
   Made with ❤️ by Kelompok 1<br>
-  Copyright © 2024 Kelompok 1. All rights reserved.
+  Copyright © 2025 Kelompok 1. All rights reserved.
 </p>
