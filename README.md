@@ -1,7 +1,7 @@
 # 📱 Aplikasi Mobile Setoran Hafalan
 
 <p align="center">
-  <img src="app/src/mainres/drawable/icon1.jpeg" width="150"/>
+  <img src="app/src/main/res/drawable/icon1.jpeg" width="150"/>
 </p>
 
 <p align="center">
