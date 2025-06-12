@@ -51,23 +51,23 @@ Aplikasi Android mutakhir yang merevolusi cara dosen mengelola dan melacak setor
 
 ### Frontend Development
 ```kotlin
-// Core Technologies
-implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.0'
-implementation 'androidx.compose.ui:ui:1.5.0'
-implementation 'com.google.android.material:material:1.9.0'
-
-// Architecture Components
-implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
-implementation 'androidx.navigation:navigation-compose:2.7.0'
-implementation 'androidx.room:room-runtime:2.6.0'
-
-// Networking & Data
-implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-implementation 'com.squareup.moshi:moshi-kotlin:1.14.0'
-
-// Security
-implementation 'androidx.security:security-crypto:1.1.0-alpha06'
-implementation 'androidx.biometric:biometric:1.2.0-alpha05'
+//// Core Technologies
+//implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.0'
+//implementation 'androidx.compose.ui:ui:1.5.0'
+//implementation 'com.google.android.material:material:1.9.0'
+//
+//// Architecture Components
+//implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
+//implementation 'androidx.navigation:navigation-compose:2.7.0'
+//implementation 'androidx.room:room-runtime:2.6.0'
+//
+//// Networking & Data
+//implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+//implementation 'com.squareup.moshi:moshi-kotlin:1.14.0'
+//
+//// Security
+//implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+//implementation 'androidx.biometric:biometric:1.2.0-alpha05'
 ```
 
 ## 📱 Screenshots | Tangkapan Layar
