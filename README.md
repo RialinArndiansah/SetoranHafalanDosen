@@ -95,7 +95,7 @@ implementation 'androidx.biometric:biometric:1.2.0-alpha05'
 ### Setup Instructions
 1. Clone repository:
 ```bash
-git clone https://github.com/username/setoran-hafalan.git
+git clone [https://github.com/username/setoran-hafalan.git](https://github.com/RialinArndiansah/SetoranHafalanDosen.git)
 cd setoran-hafalan
 ```
 
