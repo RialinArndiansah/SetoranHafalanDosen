@@ -77,9 +77,9 @@ implementation 'androidx.biometric:biometric:1.2.0-alpha05'
 
 <p align="center">
   <img src="app/src/main/res/drawable/dashboard_rdme.jpg" width="200" alt="Login Screen - Secure authentication with biometrics"/>
-  <img src="screenshots/dashboard.jpg" width="200" alt="Dashboard - Comprehensive statistics and metrics"/>
-  <img src="screenshots/submission.jpg" width="200" alt="Submission Management - Easy recording interface"/>
-  <img src="screenshots/profile.jpg" width="200" alt="Profile & Settings - Detailed user management"/>
+  <img src="app/src/main/res/drawable/kelolasetoran_rdme.jpg" width="200" alt="Dashboard - Comprehensive statistics and metrics"/>
+  <img src="app/src/main/res/drawable/mahasiswa_rdme.jpg" width="200" alt="Submission Management - Easy recording interface"/>
+  <img src="app/src/main/res/drawable/profil_rdme.jpg" width="200" alt="Profile & Settings - Detailed user management"/>
 </p>
 
 ## ⚙️ Installation | Instalasi 
