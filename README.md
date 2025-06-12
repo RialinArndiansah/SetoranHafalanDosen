@@ -33,8 +33,6 @@ Aplikasi Android mutakhir yang merevolusi cara dosen mengelola dan melacak setor
 - Real-time submission tracking
 - Interactive progress charts
 - Performance metrics visualization
-- Custom reporting tools
-- Export data functionality
 
 ### 👥 Student Management
 - Comprehensive student profiles
@@ -44,7 +42,6 @@ Aplikasi Android mutakhir yang merevolusi cara dosen mengelola dan melacak setor
 - Historical data analysis
 
 ### 📝 Submission System
-- Voice recording integration
 - Real-time submission validation
 - Quality assessment metrics
 - Progress calculation
