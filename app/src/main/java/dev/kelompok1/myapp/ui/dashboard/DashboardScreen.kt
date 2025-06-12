@@ -630,7 +630,7 @@ fun DashboardScreen(
                                     }
                                 }
 
-                                // Latest Submissions Card
+                                // Setoran Terbaru Card with tabs
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -655,67 +655,127 @@ fun DashboardScreen(
 
                                         Spacer(modifier = Modifier.height(16.dp))
 
-                                        // Horizontal tabs for angkatan
-                                        var selectedTabIndex by remember { mutableStateOf(0) }
-                                        val sortedAngkatan = mahasiswaByAngkatan.keys.sortedByDescending { it }.toList()
-
-                                        // Tab row
-                                        ScrollableTabRow(
-                                            selectedTabIndex = selectedTabIndex,
-                                            containerColor = Color.White,
-                                            contentColor = tealPrimary,
-                                            edgePadding = 0.dp,
-                                            indicator = { tabPositions ->
-                                                TabRowDefaults.Indicator(
-                                                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                                                    height = 3.dp,
-                                                    color = tealPrimary
-                                                )
-                                            }
-                                        ) {
-                                            sortedAngkatan.forEachIndexed { index, angkatan ->
-                                                Tab(
-                                                    selected = selectedTabIndex == index,
-                                                    onClick = { selectedTabIndex = index },
-                                                    text = {
-                                                        Text(
-                                                            text = "Angkatan $angkatan",
-                                                            style = MaterialTheme.typography.titleSmall,
-                                                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
-                                                        )
-                                                    }
-                                                )
-                                            }
-                                        }
-
-                                        Spacer(modifier = Modifier.height(16.dp))
-
-                                        // Content for selected angkatan
-                                        sortedAngkatan.getOrNull(selectedTabIndex)?.let { selectedAngkatan ->
-                                            mahasiswaByAngkatan[selectedAngkatan]?.let { students ->
-                                                Card(
+                                        // Get recent setoran data
+                                        val recentSetoranState = dashboardViewModel.recentSetoranByAngkatan.collectAsState().value
+                                        
+                                        when (recentSetoranState) {
+                                            is RecentSetoranState.Loading -> {
+                                                // Show loading indicator
+                                                Box(
                                                     modifier = Modifier
                                                         .fillMaxWidth()
-                                                        .padding(vertical = 4.dp),
-                                                    colors = CardDefaults.cardColors(
-                                                        containerColor = Color(0xFFF5F7F9)
-                                                    )
+                                                        .height(100.dp),
+                                                    contentAlignment = Alignment.Center
                                                 ) {
-                                                    Column(
-                                                        modifier = Modifier.padding(12.dp)
+                                                    CircularProgressIndicator(
+                                                        color = tealPrimary,
+                                                        modifier = Modifier.size(40.dp)
+                                                    )
+                                                }
+                                            }
+                                            
+                                            is RecentSetoranState.Error -> {
+                                                // Show error message
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 16.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = recentSetoranState.message,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = Color.Gray
+                                                    )
+                                                }
+                                            }
+                                            
+                                            is RecentSetoranState.Success -> {
+                                                val recentSetoranMap = recentSetoranState.data
+                                                
+                                                // If no recent setoran data at all
+                                                if (recentSetoranMap.isEmpty()) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(vertical = 16.dp),
+                                                        contentAlignment = Alignment.Center
                                                     ) {
-                                                        // Show students with their latest submissions
-                                                        students.filter { it.info_setoran.total_sudah_setor > 0 }
-                                                            .sortedByDescending { it.info_setoran.tgl_terakhir_setor }
-                                                            .take(5)
-                                                            .forEach { student ->
-                                                                LatestSubmissionItem(
-                                                                    studentName = student.nama,
-                                                                    submissionDate = student.info_setoran.tgl_terakhir_setor ?: "-",
-                                                                    progress = "${student.info_setoran.total_sudah_setor}/${student.info_setoran.total_wajib_setor}",
-                                                                    color = tealPrimary
+                                                        Text(
+                                                            text = "Belum ada setoran terbaru",
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = Color.Gray
+                                                        )
+                                                    }
+                                                } else {
+                                                    // Horizontal tabs for angkatan
+                                                    var selectedTabIndex by remember { mutableStateOf(0) }
+                                                    val sortedAngkatan = recentSetoranMap.keys.sortedByDescending { it }.toList()
+
+                                                    // Tab row
+                                                    ScrollableTabRow(
+                                                        selectedTabIndex = selectedTabIndex,
+                                                        containerColor = Color.White,
+                                                        contentColor = tealPrimary,
+                                                        edgePadding = 0.dp,
+                                                        indicator = { tabPositions ->
+                                                            TabRowDefaults.Indicator(
+                                                                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                                                                height = 3.dp,
+                                                                color = tealPrimary
+                                                            )
+                                                        }
+                                                    ) {
+                                                        sortedAngkatan.forEachIndexed { index, angkatan ->
+                                                            Tab(
+                                                                selected = selectedTabIndex == index,
+                                                                onClick = { selectedTabIndex = index },
+                                                                text = {
+                                                                    Text(
+                                                                        text = "Angkatan $angkatan",
+                                                                        style = MaterialTheme.typography.titleSmall,
+                                                                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                                                                    )
+                                                                }
+                                                            )
+                                                        }
+                                                    }
+
+                                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                                    // Content for selected angkatan
+                                                    sortedAngkatan.getOrNull(selectedTabIndex)?.let { selectedAngkatan ->
+                                                        val angkatanSetoran = recentSetoranMap[selectedAngkatan] ?: emptyList()
+                                                        
+                                                        if (angkatanSetoran.isEmpty()) {
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .padding(vertical = 16.dp),
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+                                                                Text(
+                                                                    text = "Belum ada setoran untuk angkatan ini",
+                                                                    style = MaterialTheme.typography.bodyMedium,
+                                                                    color = Color.Gray
                                                                 )
                                                             }
+                                                        } else {
+                                                            Column(
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .padding(vertical = 4.dp),
+                                                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                                            ) {
+                                                                angkatanSetoran.forEach { setoran ->
+                                                                    RecentSetoranItem(
+                                                                        nama = setoran.nama,
+                                                                        komponenSetoran = setoran.komponenSetoran,
+                                                                        tanggal = setoran.formattedDate
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
@@ -1071,6 +1131,67 @@ fun LatestSubmissionItem(
             style = MaterialTheme.typography.bodyMedium,
             color = color
         )
+    }
+}
+
+@Composable
+fun RecentSetoranItem(
+    nama: String,
+    komponenSetoran: String,
+    tanggal: String
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF9FAFB)
+        ),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = nama,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.DarkGray
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Surah: ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = komponenSetoran,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = tealPrimary
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            Text(
+                text = tanggal,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
     }
 }
 

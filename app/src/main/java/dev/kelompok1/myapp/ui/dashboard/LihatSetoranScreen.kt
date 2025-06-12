@@ -52,6 +52,9 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.scale
+import dev.kelompok1.myapp.ui.components.getFullIndonesianMonth
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +64,7 @@ fun LihatSetoranScreen(navController: NavController, nim: String) {
     val setoranState by viewModel.setoranState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var selectedFilter by remember { mutableStateOf("Sudah Setor") } // Default filter is "Sudah Setor"
 
     LaunchedEffect(nim) {
         if (nim.isNotBlank()) {
@@ -161,24 +165,102 @@ fun LihatSetoranScreen(navController: NavController, nim: String) {
                                         }
                                     }
                                 }
+                                
                                 item {
-                                    Text(
-                                        text = "Daftar Setoran:",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.Black
-                                        ),
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Daftar Setoran:",
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.Black
+                                            )
+                                        )
+                                        
+                                        // Filter segmented button
+                                        Card(
+                                            shape = RoundedCornerShape(12.dp),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = tealPastel.copy(alpha = 0.3f)
+                                            ),
+                                            elevation = CardDefaults.cardElevation(0.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.height(36.dp)
+                                            ) {
+                                                FilterSegmentButton(
+                                                    text = "Sudah Setor",
+                                                    selected = selectedFilter == "Sudah Setor",
+                                                    onClick = { selectedFilter = "Sudah Setor" }
+                                                )
+                                                
+                                                FilterSegmentButton(
+                                                    text = "Belum Setor",
+                                                    selected = selectedFilter == "Belum Setor",
+                                                    onClick = { selectedFilter = "Belum Setor" }
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
-                                items(data.setoran.detail) { item ->
-                                    SetoranCard(
-                                        nama = item.nama,
-                                        label = item.label,
-                                        sudahSetor = item.sudah_setor,
-                                        tealColor = tealPrimary,
-                                        tealPastelColor = tealPastel
-                                    )
+                                
+                                // Filter the items based on selection
+                                val filteredItems = when (selectedFilter) {
+                                    "Sudah Setor" -> data.setoran.detail.filter { it.sudah_setor }
+                                    "Belum Setor" -> data.setoran.detail.filter { !it.sudah_setor }
+                                    else -> data.setoran.detail
+                                }
+                                
+                                if (filteredItems.isEmpty()) {
+                                    item {
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = Color.White
+                                            ),
+                                            elevation = CardDefaults.cardElevation(2.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(32.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "Tidak ada setoran ${selectedFilter.lowercase()}",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    color = Color.Gray,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    items(filteredItems) { item ->
+                                        SetoranCard(
+                                            nama = item.nama,
+                                            label = item.label,
+                                            sudahSetor = item.sudah_setor,
+                                            tealColor = tealPrimary,
+                                            tealPastelColor = tealPastel,
+                                            tglSetoran = item.info_setoran?.tgl_setoran,
+                                            id = item.info_setoran?.id,
+                                            idKomponenSetoran = item.id,
+                                            onDelete = { idSetoran, idKompSetoran ->
+                                                viewModel.deleteSetoranMahasiswa(
+                                                    nim = nim,
+                                                    idSetoran = idSetoran,
+                                                    idKomponenSetoran = idKompSetoran,
+                                                    namaKomponenSetoran = item.nama
+                                                )
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         } ?: Text(
@@ -617,8 +699,14 @@ fun SetoranCard(
     label: String,
     sudahSetor: Boolean,
     tealColor: Color,
-    tealPastelColor: Color
+    tealPastelColor: Color,
+    tglSetoran: String? = null,
+    id: String? = null,
+    idKomponenSetoran: String? = null,
+    onDelete: (String, String) -> Unit = { _, _ -> }
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -634,7 +722,7 @@ fun SetoranCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(90.dp)
+                .height(if (sudahSetor && tglSetoran != null) 110.dp else 90.dp)
         ) {
             // Background setengah lingkaran di sebelah kanan
             Box(
@@ -656,7 +744,7 @@ fun SetoranCard(
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Nama surat
                     Text(
@@ -713,20 +801,134 @@ fun SetoranCard(
                             )
                         }
                     }
+                    
+                    // Tanggal Setoran (hanya tampilkan jika sudah setor dan ada tanggal)
+                    if (sudahSetor && tglSetoran != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "Tanggal Setoran:",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.Gray
+                                )
+                            )
+                            Text(
+                                text = formatDepositDate(tglSetoran),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = Color.Gray
+                                )
+                            )
+                        }
+                    }
                 }
 
-                // Ikon More (titik tiga)
-                IconButton(
-                    onClick = { },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.MoreVert,
-                        contentDescription = "More",
-                        tint = Color.Gray
-                    )
+                // Ikon More (titik tiga) dengan dropdown menu
+                Box {
+                    IconButton(
+                        onClick = { 
+                            if (sudahSetor && id != null && idKomponenSetoran != null) {
+                                showMenu = true 
+                            }
+                        },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.MoreVert,
+                            contentDescription = "More",
+                            tint = if (sudahSetor && id != null && idKomponenSetoran != null) Color.DarkGray else Color.LightGray
+                        )
+                    }
+                    
+                    // Dropdown menu for delete
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { 
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.RadioButtonUnchecked, 
+                                        contentDescription = "Delete",
+                                        tint = Color.Red,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        "Hapus Setoran", 
+                                        color = Color.Red,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    )
+                                }
+                            },
+                            onClick = {
+                                if (id != null && idKomponenSetoran != null) {
+                                    onDelete(id, idKomponenSetoran)
+                                    showMenu = false
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun FilterSegmentButton(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .background(
+                color = if (selected) tealPrimary else Color.Transparent,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+            ),
+            color = if (selected) Color.White else Color.DarkGray
+        )
+    }
+}
+
+/**
+ * Formats the deposit date from API format (YYYY-MM-DD) to a more readable format (DD Month YYYY)
+ */
+@Composable
+fun formatDepositDate(dateString: String): String {
+    if (dateString.isBlank()) return "-"
+    
+    try {
+        // Parse YYYY-MM-DD format
+        val parts = dateString.split("-")
+        if (parts.size == 3) {
+            val year = parts[0]
+            val month = parts[1].toIntOrNull() ?: 1
+            val day = parts[2].toIntOrNull() ?: 1
+            
+            // Use the shared utility function for month names
+            val monthName = getFullIndonesianMonth(month)
+            
+            // Format as DD Month YYYY
+            return "$day $monthName $year"
+        }
+        return dateString // Return original if parsing fails
+    } catch (e: Exception) {
+        return dateString // Return original if any exception occurs
     }
 }

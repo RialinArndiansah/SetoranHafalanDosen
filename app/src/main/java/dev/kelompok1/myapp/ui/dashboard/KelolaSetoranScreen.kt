@@ -39,6 +39,7 @@ import android.app.DatePickerDialog
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import java.util.*
 import java.text.SimpleDateFormat
+import dev.kelompok1.myapp.ui.components.getFullIndonesianMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +61,6 @@ fun KelolaSetoranScreen(navController: NavController) {
     var komponenExpanded by remember { mutableStateOf(false) }
     var setoranExpanded by remember { mutableStateOf(false) }
     var isDateSelected by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf("") }
     
     // Tab state
     var selectedTabIndex by remember { mutableStateOf(0) }
@@ -120,11 +120,23 @@ fun KelolaSetoranScreen(navController: NavController) {
         viewModel.fetchDosenInfo()
     }
 
-    // Date Picker setup
-    val calendar = Calendar.getInstance()
+    // Date Picker setup with Indonesian Timezone
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"))
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH)
     val day = calendar.get(Calendar.DAY_OF_MONTH)
+    
+    // Format today's date in YYYY-MM-DD format for API
+    val todayFormattedForApi = String.format("%04d-%02d-%02d", year, month + 1, day)
+    
+    // Format today's date in readable format (e.g., "12 Februari 2024")
+    val todayReadable = "${day} ${getFullIndonesianMonth(month + 1)} ${year}"
+    
+    // For displayed date
+    var selectedDateReadable by remember { mutableStateOf("") }
+    
+    // For API submission (in YYYY-MM-DD format)
+    var selectedDate by remember { mutableStateOf("") }
 
     // Create DatePickerDialog but don't show it initially
     val datePickerDialog = DatePickerDialog(
@@ -132,6 +144,8 @@ fun KelolaSetoranScreen(navController: NavController) {
         { _, selectedYear, selectedMonth, selectedDay ->
             // Format the date in YYYY-MM-DD format for API compatibility
             selectedDate = String.format("%04d-%02d-%02d", selectedYear, selectedMonth + 1, selectedDay)
+            // Format the date in readable format for display
+            selectedDateReadable = "${selectedDay} ${getFullIndonesianMonth(selectedMonth + 1)} ${selectedYear}"
         },
         year,
         month,
@@ -450,7 +464,7 @@ fun KelolaSetoranScreen(navController: NavController) {
                                                 )
                                             )
                                             Text(
-                                                text = if (isDateSelected) "Pilih Tanggal" else "Default Hari Ini",
+                                                text = if (isDateSelected) "Pilih Tanggal" else "Default Hari Ini (${todayReadable})",
                                                 modifier = Modifier.padding(start = 8.dp),
                                                 color = tealDark
                                             )
@@ -463,7 +477,7 @@ fun KelolaSetoranScreen(navController: NavController) {
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 OutlinedTextField(
-                                                    value = selectedDate,
+                                                    value = if (selectedDateReadable.isNotEmpty()) selectedDateReadable else "",
                                                     onValueChange = { },
                                                     label = { Text("Tanggal Setoran") },
                                                     modifier = Modifier
@@ -560,7 +574,8 @@ fun KelolaSetoranScreen(navController: NavController) {
                                                         viewModel.postSetoranMahasiswa(
                                                             nimInput, 
                                                             idKomponenSetoranInput, 
-                                                            namaKomponenSetoranInput
+                                                            namaKomponenSetoranInput,
+                                                            todayFormattedForApi // Use today's date in Indonesian timezone
                                                         )
                                                     }
                                                     

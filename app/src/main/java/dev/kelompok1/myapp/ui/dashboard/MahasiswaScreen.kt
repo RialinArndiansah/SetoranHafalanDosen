@@ -1,5 +1,6 @@
 package dev.kelompok1.myapp.ui.dashboard
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -19,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.kelompok1.myapp.data.model.Mahasiswa
@@ -38,6 +41,9 @@ fun MahasiswaScreen(navController: NavController) {
     val viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.getFactory(context))
     val dashboardState by viewModel.dashboardState.collectAsState()
     var selectedTabIndex by remember { mutableStateOf(0) }
+    var showSearchDialog by remember { mutableStateOf(false) }
+    var selectedAngkatan by remember { mutableStateOf<String?>(null) }
+    var filteredStudents by remember { mutableStateOf<List<Mahasiswa>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchDosenInfo()
@@ -54,6 +60,15 @@ fun MahasiswaScreen(navController: NavController) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = {
+                    IconButton(onClick = { showSearchDialog = true }) {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color.White
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = tealPrimary,
                     titleContentColor = Color.White,
@@ -66,6 +81,258 @@ fun MahasiswaScreen(navController: NavController) {
         },
         containerColor = Color(0xFFF5F7F9)
     ) { padding ->
+        
+        // Search Dialog
+        if (showSearchDialog) {
+            Dialog(onDismissRequest = { 
+                showSearchDialog = false
+                selectedAngkatan = null
+            }) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .fillMaxWidth()
+                    ) {
+                         
+                        
+                        // Step 1: Select Angkatan (if no angkatan is selected yet)
+                        if (selectedAngkatan == null) {
+
+                            
+                            Text(
+                                text = "Pilih Angkatan:",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.DarkGray
+                            )
+                            
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            when (val state = dashboardState) {
+                                is DashboardState.Success -> {
+                                    val mahasiswaList = state.data.data.info_mahasiswa_pa.daftar_mahasiswa
+                                    val angkatanList = mahasiswaList.map { it.angkatan }.distinct().sorted()
+                                    
+                                    LazyColumn(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(320.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        items(angkatanList.size) { index ->
+                                            val angkatan = angkatanList[index]
+                                            Card(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { 
+                                                        selectedAngkatan = angkatan
+                                                        filteredStudents = mahasiswaList.filter { it.angkatan == angkatan }
+                                                    },
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = Color.White
+                                                ),
+                                                shape = RoundedCornerShape(12.dp),
+                                                elevation = CardDefaults.cardElevation(2.dp),
+                                                border = BorderStroke(1.dp, tealPastel)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(16.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Person,
+                                                        contentDescription = null,
+                                                        tint = tealPrimary,
+                                                        modifier = Modifier
+                                                            .size(28.dp)
+                                                            .background(tealPastel, shape = RoundedCornerShape(50))
+                                                            .padding(6.dp)
+                                                    )
+                                                    
+                                                    Spacer(modifier = Modifier.width(12.dp))
+                                                    
+                                                    Text(
+                                                        text = "Angkatan $angkatan",
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = Color.DarkGray,
+                                                        style = MaterialTheme.typography.titleMedium
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(100.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(color = tealPrimary)
+                                    }
+                                }
+                            }
+                        } 
+                        // Step 2: Select student from the chosen angkatan
+                        else {
+                            Text(
+                                text = "Pencarian Mahasiswa",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = tealDark,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TextButton(
+                                    onClick = { selectedAngkatan = null },
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                    colors = ButtonDefaults.textButtonColors(
+                                        contentColor = tealPrimary
+                                    )
+                                ) {
+                                    Icon(
+                                        Icons.Default.ArrowBack, 
+                                        contentDescription = "Back",
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Kembali",
+                                        fontWeight = FontWeight.Medium,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                                
+                                Spacer(modifier = Modifier.weight(1f))
+                                
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = tealPrimary
+                                    ),
+                                    shape = RoundedCornerShape(20.dp)
+                                ) {
+                                    Text(
+                                        text = "Angkatan $selectedAngkatan",
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                            
+                            Divider(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                color = Color(0xFFEEEEEE),
+                                thickness = 1.dp
+                            )
+                            
+                            Text(
+                                text = "Pilih Mahasiswa:",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.DarkGray
+                            )
+                            
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(320.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(filteredStudents.size) { index ->
+                                    val mahasiswa = filteredStudents[index]
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { 
+                                                showSearchDialog = false
+                                                navController.navigate("lihat_setoran/${mahasiswa.nim}")
+                                            },
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = Color.White
+                                        ),
+                                        shape = RoundedCornerShape(12.dp),
+                                        elevation = CardDefaults.cardElevation(2.dp),
+                                        border = BorderStroke(1.dp, tealPastel)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Person,
+                                                contentDescription = null,
+                                                tint = tealPrimary,
+                                                modifier = Modifier
+                                                    .size(40.dp)
+                                                    .background(tealPastel, shape = RoundedCornerShape(50))
+                                                    .padding(8.dp)
+                                            )
+                                            
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            
+                                            Column {
+                                                Text(
+                                                    text = mahasiswa.nama,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = Color.DarkGray,
+                                                    style = MaterialTheme.typography.titleMedium
+                                                )
+                                                Text(
+                                                    text = "NIM: ${mahasiswa.nim}",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = Color.Gray
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Close button
+                        Button(
+                            onClick = { 
+                                showSearchDialog = false 
+                                selectedAngkatan = null
+                            },
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(top = 8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = tealPrimary
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Tutup", color = Color.White)
+                        }
+                    }
+                }
+            }
+        }
+        
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -101,37 +368,32 @@ fun MahasiswaScreen(navController: NavController) {
                 is DashboardState.Success -> {
                     val mahasiswaList = state.data.data.info_mahasiswa_pa.daftar_mahasiswa
                     val angkatanList = mahasiswaList.map { it.angkatan }.distinct().sorted()
-
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        // Tabs
+                    
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        // Tab Row for angkatan
                         ScrollableTabRow(
                             selectedTabIndex = selectedTabIndex,
+                            modifier = Modifier.fillMaxWidth(),
                             containerColor = Color.White,
                             contentColor = tealPrimary,
-                            edgePadding = 16.dp,
                             indicator = { tabPositions ->
                                 TabRowDefaults.Indicator(
                                     modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                                    color = tealPrimary,
-                                    height = 3.dp
+                                    height = 3.dp,
+                                    color = tealPrimary
                                 )
-                            }
+                            },
+                            edgePadding = 16.dp
                         ) {
                             angkatanList.forEachIndexed { index, angkatan ->
                                 Tab(
                                     selected = selectedTabIndex == index,
                                     onClick = { selectedTabIndex = index },
-                                    text = {
-                                        Text(
-                                            text = "Angkatan $angkatan",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                    }
+                                    text = { Text("Angkatan $angkatan", fontWeight = FontWeight.Medium) }
                                 )
                             }
                         }
-
+                        
                         // Content
                         LazyColumn(
                             modifier = Modifier
@@ -226,7 +488,7 @@ fun MahasiswaItem(
                 InfoColumn(
                     "Status", 
                     when {
-                        mahasiswa.info_setoran.total_sudah_setor == 0 -> "Let’s start\uD83E\uDD17"
+                        mahasiswa.info_setoran.total_sudah_setor == 0 -> "Let's start\uD83E\uDD17"
                         mahasiswa.info_setoran.persentase_progres_setor == 100f -> "Completed"
                         else -> "On Progress"
                     }
@@ -308,19 +570,17 @@ fun MahasiswaItem(
 }
 
 @Composable
-fun InfoColumn(title: String, value: String) {
+fun InfoColumn(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = title,
+            text = label,
             style = MaterialTheme.typography.labelMedium,
             color = Color.Gray
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            fontWeight = FontWeight.Medium
         )
     }
 }
