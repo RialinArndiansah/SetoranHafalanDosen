@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -102,6 +103,9 @@ fun DashboardScreen(
     
     // Dropdown menu state
     var showProfileMenu by remember { mutableStateOf(false) }
+    
+    // Dialog state for logout confirmation
+    var showLogoutDialog by remember { mutableStateOf(false) }
     
     // Load saved profile photo on initial composition
     LaunchedEffect(Unit) {
@@ -226,7 +230,7 @@ fun DashboardScreen(
                                 text = { Text("Keluar", color = Color(0xFFD32F2F)) },
                                 onClick = {
                                     showProfileMenu = false
-                                    onLogout()
+                                    showLogoutDialog = true
                                 },
                                 leadingIcon = {
                                     Icon(
@@ -250,6 +254,37 @@ fun DashboardScreen(
         },
         containerColor = Color(0xFFF5F7F9)
     ) { padding ->
+        // Logout confirmation dialog
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Konfirmasi Logout") },
+                text = { Text("Apakah Anda yakin ingin keluar dari aplikasi?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showLogoutDialog = false
+                            onLogout()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                    ) {
+                        Text("Ya, Keluar", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(
+                        onClick = { showLogoutDialog = false },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = tealPrimary
+                        ),
+                        border = BorderStroke(1.dp, tealPrimary)
+                    ) {
+                        Text("Batal", color = tealPrimary)
+                    }
+                }
+            )
+        }
+        
         Box(
             modifier = Modifier
                 .fillMaxSize()

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -55,12 +57,16 @@ fun ProfileScreen(
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.getFactory(context))
     val dashboardViewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.getFactory(context))
     val dashboardState by viewModel.profileState.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val profilePhotoUri by viewModel.profilePhotoUri.collectAsState()
     val defaultProfilePhoto = R.drawable.user
+
+    // Dialog state for logout confirmation
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     // Function to save image to local storage
     fun saveImageToLocal(uri: Uri): Uri {
@@ -143,7 +149,7 @@ fun ProfileScreen(
                 actions = {
                     // Simple logout icon in app bar
                     IconButton(onClick = {
-                        onLogout()
+                        showLogoutDialog = true
                     }) {
                         Icon(
                             imageVector = Icons.Default.ExitToApp,
@@ -159,6 +165,37 @@ fun ProfileScreen(
         },
         containerColor = Color(0xFFF5F7F9)
     ) { padding ->
+        // Logout confirmation dialog
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Konfirmasi Logout") },
+                text = { Text("Apakah Anda yakin ingin keluar dari aplikasi?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showLogoutDialog = false
+                            onLogout()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                    ) {
+                        Text("Ya, Keluar", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(
+                        onClick = { showLogoutDialog = false },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = tealPrimary
+                        ),
+                        border = BorderStroke(1.dp, tealPrimary)
+                    ) {
+                        Text("Batal", color = tealPrimary)
+                    }
+                }
+            )
+        }
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
